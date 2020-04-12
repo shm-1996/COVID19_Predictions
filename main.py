@@ -1,8 +1,8 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 """"
 
-    Title :      SEIR_Model
+    Title :      main
     Notes :      Implementation to evolve the SEIR Model equations developed in Richard Neher's research group at University of Basel. 
     Author:      Shyam Harimohan Menon (Fully original code). Model adapted from Richard Neher's group. See www.covid19-scenarios.org for details. 
     Date  :      11th April 2020
