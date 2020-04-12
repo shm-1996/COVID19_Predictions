@@ -1,9 +1,9 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 """"
 
     Title :      FunctionInterface
-    Notes :      Useful backend functions required for the SEIR_Model.py module. 
+    Notes :      Useful backend functions required for the main.py module. 
     Author:      Shyam Harimohan Menon (Fully original code). Model adapted from Richard Neher's group. See www.covid19-scenarios.org for details. 
     Date  :      11th April 2020
 
@@ -11,7 +11,7 @@
 
 
 from header import *
-import SEIR_Model
+import main
 no_of_age_bins = 0
 
 
@@ -26,7 +26,7 @@ def calculate_beta(t,R_0,zeta_a) :
 # OUTPUT : 
 # 		   beta : Tuple of the instantaneous transmission rate for all age groups.  
 
-	beta = R_0 * zeta_a * SEIR_Model.M(t) 
+	beta = R_0 * zeta_a * main.M(t) 
 	return beta
 
 def set_params() :
@@ -39,16 +39,15 @@ def set_params() :
 	# 
 	# Read values from each age bin from parameter files
 	config = configparser.ConfigParser()
-	config.read(SEIR_Model.parameter_file)
+	config.read(main.parameter_file)
 	N_population = config['parameters'].getint('no_of_people')
 
-	age_dependent_file = SEIR_Model.output_directory + config['files']['age_dependent_file'] # JSON File
+	age_dependent_file = main.output_directory + config['files']['age_dependent_file'] # JSON File
 
 	with open(age_dependent_file) as json_file :
 		data = json.load(json_file)
 
 	age_distribution = np.asarray(get_as_list(data['ageDistribution']))
-	# SEIR_Model.no_of_age_bins = np.size(age_distribution)
 	global no_of_age_bins
 	no_of_age_bins = np.size(age_distribution)
 	N_a = np.asarray(list(map(int,N_population*age_distribution)))
@@ -58,7 +57,6 @@ def set_params() :
 	zeta_a = 1.-np.asarray(data['frac']['isolated'])
 
 	# age independent parameters 
-	#Timescaled
 	t_l = config['timescales'].getint('symptom_latency_time')
 	t_i = config['timescales'].getint('sickness_time')
 	t_h = config['timescales'].getint('hospital_time')
@@ -96,7 +94,7 @@ def set_initial_conditions(N_a) :
 	# Read age dependent parameters from file
 	initial_solution = {}
 	config = configparser.ConfigParser()
-	config.read(SEIR_Model.parameter_file)
+	config.read(main.parameter_file)
 	E_0 = config['initial_conditions'].getint('Initial_Exposed')
 	I_0 = config['initial_conditions'].getint('Initial_Infected')
 	H_0 = config['initial_conditions'].getint('Initial_Hospitalised')
@@ -106,7 +104,6 @@ def set_initial_conditions(N_a) :
 	
 	# Distribute total cases ~ uniformly across the age bins
 	initial_conditions =  [E_0,I_0,H_0,C_0,R_0,D_0]
-	# E_0,I_0,H_0,C_0,R_0,D_0 = [distribute_uniformly(i,SEIR_Model.no_of_age_bins) for i in initial_conditions]
 	E_0,I_0,H_0,C_0,R_0,D_0 = [distribute_uniformly(i,no_of_age_bins) for i in initial_conditions]
 	S_0 = N_a - E_0 - I_0 - H_0 - C_0 - R_0 - D_0 
 	initial_solution = {'S_0':S_0,'E_0':E_0,'I_0':I_0,'H_0':H_0,'C_0':C_0,'R_0':R_0,'D_0':D_0}	
@@ -178,7 +175,7 @@ def plot_results(S,E,I,H,C,R,D,number_of_beds,number_of_icu,t) :
 
 
 	S_total,E_total,I_total,H_total,C_total,R_total,D_total = np.sum(S,axis=1),np.sum(E,axis=1),np.sum(I,axis=1),np.sum(H,axis=1),np.sum(C,axis=1),np.sum(R,axis=1),np.sum(D,axis=1)
-
+	# Cumulative Cases plot
 	plt.clf()
 	fig,axs = plt.subplots(ncols = 2,nrows=2,figsize=(12,10))
 	axs[0,0].plot(t,I_total,color='#7600F590',label='Infected',lw=1.8)
@@ -209,14 +206,58 @@ def plot_results(S,E,I,H,C,R,D,number_of_beds,number_of_icu,t) :
 			axs[i,j].legend(loc='best')
 			axs[i,j].grid(True)
 			axs[i,j].set_yscale('log')
+			if((i+j)>0) :
+				axs[i,j].yaxis.set_major_formatter(ScalarFormatter())
 			plt.setp(axs[i,j].spines.values(),linewidth=2.0)
 			j +=1
 		i += 1	
 	
-	#fig.suptitle("Total Population = {}".format(N),fontsize=24)
 	plt.tight_layout()
-	plt.savefig(SEIR_Model.output_directory+"Total_Cases.pdf",bbox_inches = 'tight')
+	plt.savefig(main.output_directory+"Cumulative_Cases.pdf",bbox_inches = 'tight')
+	plt.clf()
 
+	#New cases plot
+	S_new,E_new,I_new,H_new,C_new,R_new,D_new = np.diff(S_total[::100]),np.diff(E_total[::100]),np.diff(I_total[::100]),np.diff(H_total[::100]),np.diff(C_total[::100]),np.diff(R_total[::100]),np.diff(D_total[::100])
+	t = t[::100]
+	t = t[:-1]
+	# Cumulative Cases plot
+	plt.clf()
+	fig,axs = plt.subplots(ncols = 2,nrows=2,figsize=(12,10))
+	axs[0,0].plot(t,I_new,color='#7600F590',label='Infected',lw=1.8)
+	# axs[0,0].set_title("Infected Individuals",fontsize=20)
+	axs[0,1].plot(t,H_new,color='#7600F590',label='Hospitalised',lw=1.8)
+	axs[1,0].plot(t,C_new,color='#7600F590',label='Critical',lw=1.8)
+	axs[1,1].plot(t,D_new,color='#7600F590',label='Dead',lw=1.8)
+
+	axs[0,0].set_ylabel('New Infections',fontsize=16)
+	axs[0,1].set_ylabel('New Hospital Cases',fontsize=16)
+	axs[1,0].set_ylabel('New Critical Cases',fontsize=16)
+	axs[1,0].set_xlabel('Time (days)',fontsize=16)
+	axs[1,1].set_xlabel('Time (days)',fontsize=16)
+	axs[1,1].set_ylabel('New Deaths',fontsize=16)
+	
+	shape = np.shape(axs)
+	i,j = 0,0
+	while i<shape[0] :
+		j = 0
+		while j<shape[1] :
+			axs[i,j].xaxis.set_minor_locator(AutoMinorLocator())
+			axs[i,j].yaxis.set_minor_locator(AutoMinorLocator())
+			axs[i,j].tick_params(axis='x')
+			axs[i,j].tick_params(which='major',width=1.5,length=4)
+			axs[i,j].tick_params(which='minor',width=0.7,length=2)
+			axs[i,j].legend(loc='best')
+			axs[i,j].grid(True)
+			axs[i,j].set_yscale('log')
+			if((i+j)>0) :
+				axs[i,j].yaxis.set_major_formatter(ScalarFormatter())
+			plt.setp(axs[i,j].spines.values(),linewidth=2.0)
+			j +=1
+		i += 1	
+	
+	plt.tight_layout()
+	plt.savefig(main.output_directory+"New_Cases.pdf",bbox_inches = 'tight')
+	plt.clf()
 def saveObj(obj, name):
     """
     Save a pickle object.

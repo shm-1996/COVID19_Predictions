@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 
 
@@ -26,10 +26,11 @@ import matplotlib as mpl
 from matplotlib import rc
 from matplotlib.ticker import (MultipleLocator, FormatStrFormatter,
                                AutoMinorLocator)
+from matplotlib.ticker import ScalarFormatter
 mpl.style.use('classic')
 mpl.rcParams['text.usetex'] = True
 mpl.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}',r'\usepackage{mathrsfs}',r'\usepackage{amssymb}']
-rc('font', **{'family': 'DejaVu Sans','size':16})
+rc('font', **{'family': 'DejaVu Sans','size':14})
 rc('text', usetex=True)
 
 
