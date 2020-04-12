@@ -11,15 +11,16 @@ To run a scenario with this repository do the following steps-
 1. Fork/download this repository from here to your local system.  
 2. Convert to an executable by running : `chmod +x main.py`
 3. Run the inbuilt scenario as a test by running : `./main.py`
-4. Edit parameters.ini to modify the initial conditions or parameters in the model. 
-5. Use a different `covid.params.json` for modelling a different state/country. (See below for details)
-6. Run `./main.py -h` for more runtime options. 
+4. This should create a file called `Cumulative_Cases.pdf` in the working directory that contains a plot of the cumulative cases in each category as a function of the number of days. It will also print out a pickle file called `solution.pkl` that contains the solution vector as a numpy array, if you wish to do further analysis on the results. Look through main.py for th format of the solution vector. 
+4. Edit `parameters.ini` to modify the initial conditions or parameters in the model. Edit `covids.params.json` to modify the age distribution of the population in the region of study. 
+5. Run `./main.py -h` for more runtime options. 
 
 ### Input Files Required
 To evolve the model two files are required -
 1. `parameters.ini` : Input file where the user can change the parameters used in the model and the initial conditions of the model. Values for the parameters are specified in the provided file from scientific literature, where available, and the source is cited in the file below the value. 
-2. `covids.params.json` : Input file specifying age-dependent parameters such as the age-distribution of the region in study, and age-dependent risk factors. The ones included in the repository contains the age distribution of Maharastra (India) as obtained from Richard Neher's model. The age-dependent risk factors are obtained from the [data that the China CDC released](http://weekly.chinacdc.cn/en/article/id/e53946e2-c6c4-41e9-9a9b-fea8db1a8f51) from analysing more than 40000 cases in China. 
+2. `covids.params.json` : Input file specifying age-dependent parameters such as the age-distribution of the region in study, and age-dependent risk factors. The ones included in the repository contains the age distribution of Maharastra (India) as obtained from Richard Neher's model. The age-dependent risk factors are obtained from the [data that the China CDC released](http://weekly.chinacdc.cn/en/article/id/e53946e2-c6c4-41e9-9a9b-fea8db1a8f51) from analysing more than 40000 cases in China. A quick way to run this model for different regions is to download the json files for different regions available on the [interactive simulator](https://covid19-scenarios.org) of Richad Neher's group. 
 
 ### Additional features planned 
+- Include templates for age-dependent data for different states of India for the ease of the user. 
 - Introduce error propogation to the model to provide more robust interpretations of the results. Errors to be propogated by Monte-Carlo sampling the parameters as normal distributions (or gaussian priors) and propgating realisations through to the solution vector. 
 - Use the model and the priors of the parameters, and real-time data for a region, to back estimate the maximum likelihood parameters using Bayesian inference. 
