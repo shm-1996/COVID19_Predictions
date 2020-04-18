@@ -17,7 +17,6 @@ import argparse
 import configparser
 import os
 import json
-from block_timer.timer import Timer
 import pickle
 
 #Plotting
